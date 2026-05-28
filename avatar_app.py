@@ -6,7 +6,6 @@ from PIL import Image
 import requests
 import time
 from elevenlabs.client import ElevenLabs
-import json
 
 load_dotenv()
 
@@ -64,12 +63,21 @@ if uploaded_file is not None:
     
     st.image(image, caption="Your photo", width=300)
     
+    # Convert RGBA to RGB and resize
+    if image.mode == "RGBA":
+        st.info("Converting transparent image to solid background...")
+        rgb_image = Image.new("RGB", image.size, (255, 255, 255))
+        rgb_image.paste(image, mask=image.split()[3] if len(image.split()) == 4 else None)
+        image = rgb_image
+    elif image.mode != "RGB":
+        image = image.convert("RGB")
+    
     # Resize image to 512x512 for better compatibility
     image_resized = image.resize((512, 512))
     with open("temp_photo.jpg", "wb") as f:
-        image_resized.save(f, format="JPEG")
+        image_resized.save(f, format="JPEG", quality=95)
     
-    st.success("Photo uploaded and resized to 512x512!")
+    st.success("✅ Photo uploaded and processed!")
     
     st.header("Step 2: Select Gender and Voice")
     
@@ -105,7 +113,6 @@ if uploaded_file is not None:
         if st.button("Create Video", type="primary"):
             progress_placeholder = st.empty()
             status_placeholder = st.empty()
-            debug_placeholder = st.empty()
             
             try:
                 # Step 1: Generate audio with ElevenLabs SDK
@@ -121,10 +128,6 @@ if uploaded_file is not None:
                 # Convert generator to bytes
                 audio_bytes = b"".join(audio_generator)
                 
-                # DEBUG: Check audio properties
-                audio_size_mb = len(audio_bytes) / (1024 * 1024)
-                debug_placeholder.info(f"🔊 Audio generated: {audio_size_mb:.2f} MB")
-                
                 # Save audio temporarily
                 with open("temp_audio.mp3", "wb") as f:
                     f.write(audio_bytes)
@@ -133,11 +136,6 @@ if uploaded_file is not None:
                 status_placeholder.text("✨ Audio generated, creating video... (40%)")
                 
                 # Step 2: Create video from image + audio + prompt
-                debug_placeholder.info(f"📤 Sending to Replicate with:")
-                debug_placeholder.info(f"  - Image: 512x512 JPEG")
-                debug_placeholder.info(f"  - Audio: {audio_size_mb:.2f} MB MP3")
-                debug_placeholder.info(f"  - Prompt: {script[:50]}...")
-                
                 input_data = {
                     "image": open("temp_photo.jpg", "rb"),
                     "audio": open("temp_audio.mp3", "rb"),
@@ -151,7 +149,6 @@ if uploaded_file is not None:
                 
                 progress_placeholder.progress(100)
                 status_placeholder.text("✅ Video created! (100%)")
-                debug_placeholder.success(f"✅ Output: {output}")
                 
                 st.success("✅ Your avatar video is ready!")
                 st.video(str(output))
