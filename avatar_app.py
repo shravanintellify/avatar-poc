@@ -107,12 +107,15 @@ if uploaded_file is not None:
                 progress_placeholder.progress(20)
                 status_placeholder.text("🎤 Generating voice with ElevenLabs... (20%)")
                 
-                audio_data = client.text_to_speech.convert(
+                audio_generator = client.text_to_speech.convert(
                     text=script,
                     voice_id=selected_voice_id,
                     model_id="eleven_monolingual_v1",
                     output_format="mp3_44100_128"
                 )
+                
+                # Convert generator to bytes
+                audio_data = b"".join(audio_generator)
                 
                 # Save audio temporarily
                 with open("temp_audio.mp3", "wb") as f:
