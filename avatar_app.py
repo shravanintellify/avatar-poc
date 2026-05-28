@@ -32,31 +32,21 @@ os.environ["REPLICATE_API_TOKEN"] = replicate_token
 # Initialize ElevenLabs client
 elevenlabs_client = ElevenLabs(api_key=elevenlabs_token)
 
-# ElevenLabs voices organized by gender
+# Your actual ElevenLabs voices
 male_voices = {
-    "Adam": "pFZP5JQG7iQjVjxwDxl9",
-    "Arnold": "VR6AewLHbXG4fMH3DapH",
-    "Josh": "NM3f8KdkDk33SB3OeVqA",
-    "Sam": "yoZ06aMxZJJ28mfd3foM",
-    "Clyde": "2EiwWnXFnvU5JabPnXlIQe",
-    "George": "JBFqnCBsd6RMkjVDRZzb",
-    "Liam": "TX3LPaxmHKbtyChAf97l",
-    "Will": "bIHbv24MWmeRgasZH58o",
-    "Benjamin": "EXAVITQu4vLHcDG75Zi5",
-    "Michael": "cgSugon9hsenf08z4v50",
+    "Male Voice 1": "8Ln42OXYupYsag45MAUy",
+    "Male Voice 2": "s3TPKV1kjDlVtZbl4Ksh",
+    "Male Voice 3": "6FiCmD8eY5VyjOdG5Zjk",
+    "Male Voice 4": "ppLqTilh7rH7fbUVlXsf",
+    "Male Voice 5": "pVnrL6sighQX7hVz89cp",
 }
 
 female_voices = {
-    "Rachel": "21m00Tcm4TlvDq8ikWAM",
-    "Bella": "EXAVITQu4vLHcDG75Zi5",
-    "Elli": "MF3mGyEYCl7XYWbV4B8N",
-    "Matilda": "T9gMpSsS5vicPHZMVLua",
-    "Emily": "LcfcDJNUP1ajNAe3NEN5",
-    "Alice": "Xb7hH8MSUJpSbvXZwix3",
-    "Domi": "AZnzlk1XvdvUBZ4xvXNO",
-    "Sarah": "EL4aMd8r4r3FBqb8L8QX",
-    "Nina": "F6BDQ6JYvJV8QrMZT8Dn",
-    "Victoria": "q6e3ERfXy1oBQyj9fFyf",
+    "Female Voice 1": "uIZsnBL0YK1S5j69bAih",
+    "Female Voice 2": "yj30vwTGJxSHezdAGsv9",
+    "Female Voice 3": "K7W7zLWeGoxU9YqWoB7A",
+    "Female Voice 4": "6u6JbqKdaQy89ENzLSju",
+    "Female Voice 5": "NDTYOmYEjbDIVCKB35i3",
 }
 
 st.header("Step 1: Upload Your Photo")
@@ -158,3 +148,4 @@ if uploaded_file is not None:
                 
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
+                st.info("💡 Tip: Make sure your ElevenLabs API token is valid and you have credits remaining")
