@@ -144,4 +144,4 @@ if uploaded_file is not None:
                 
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
-                st.info("💡 Tip: Try a shorter script (under 100 words) for better results")
+                st.info("💡 Tip: Try a shorter script (under 100 words) for better results")# Updated: Thu May 28 15:08:43 IST 2026
