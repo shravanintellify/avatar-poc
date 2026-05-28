@@ -52,7 +52,7 @@ if uploaded_file is not None:
     st.info(f"🌍 Selected: {language}")
     
     st.header("Step 3: Select Voice")
-    # These are the default ElevenLabs voices
+    # ElevenLabs default voices
     voices_dict = {
         "George": "JBFqnCBsd6RMkjVDRZzb",
         "Callum": "N2lVS1Bf4yfhs3UNxFjO",
@@ -133,4 +133,4 @@ if uploaded_file is not None:
                 
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
-                st.info("💡 Tip: Make sure your ElevenLabs API token is valid and you have free credits remaining")
+                st.info("💡 Tip: Make sure your ElevenLabs API token is valid and you have credits remaining")
