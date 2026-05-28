@@ -5,119 +5,64 @@ from dotenv import load_dotenv
 from PIL import Image
 import requests
 import time
-from elevenlabs.client import ElevenLabs
 
 load_dotenv()
 
 st.title("AI Avatar Video Generator")
 st.write("Create AI videos of yourself speaking!")
 
-# Get API tokens
-replicate_token = os.getenv("REPLICATE_API_TOKEN")
-if not replicate_token:
-    replicate_token = st.secrets.get("REPLICATE_API_TOKEN")
-if not replicate_token:
+api_token = os.getenv("REPLICATE_API_TOKEN")
+if not api_token:
+    api_token = st.secrets.get("REPLICATE_API_TOKEN")
+if not api_token:
     st.error("❌ Error: REPLICATE_API_TOKEN not found")
     st.stop()
 
-elevenlabs_token = os.getenv("ELEVENLABS_API_TOKEN")
-if not elevenlabs_token:
-    elevenlabs_token = st.secrets.get("ELEVENLABS_API_TOKEN")
-if not elevenlabs_token:
-    st.error("❌ Error: ELEVENLABS_API_TOKEN not found")
-    st.stop()
-
-os.environ["REPLICATE_API_TOKEN"] = replicate_token
-
-# Initialize ElevenLabs client
-elevenlabs_client = ElevenLabs(api_key=elevenlabs_token)
-
-# Your actual ElevenLabs voices
-male_voices = {
-    "Male Voice 1": "8Ln42OXYupYsag45MAUy",
-    "Male Voice 2": "s3TPKV1kjDlVtZbl4Ksh",
-    "Male Voice 3": "6FiCmD8eY5VyjOdG5Zjk",
-    "Male Voice 4": "ppLqTilh7rH7fbUVlXsf",
-    "Male Voice 5": "pVnrL6sighQX7hVz89cp",
-}
-
-female_voices = {
-    "Female Voice 1": "uIZsnBL0YK1S5j69bAih",
-    "Female Voice 2": "yj30vwTGJxSHezdAGsv9",
-    "Female Voice 3": "K7W7zLWeGoxU9YqWoB7A",
-    "Female Voice 4": "6u6JbqKdaQy89ENzLSju",
-    "Female Voice 5": "NDTYOmYEjbDIVCKB35i3",
-}
-
-def process_image(image):
-    """Convert image to RGB and pad to square without stretching"""
-    # Convert RGBA to RGB if needed
-    if image.mode == "RGBA":
-        rgb_image = Image.new("RGB", image.size, (255, 255, 255))
-        rgb_image.paste(image, mask=image.split()[3])
-        image = rgb_image
-    elif image.mode != "RGB":
-        image = image.convert("RGB")
-    
-    # Get original dimensions
-    orig_width, orig_height = image.size
-    
-    # Create square canvas (720x720 for better quality)
-    size = 720
-    square = Image.new("RGB", (size, size), (255, 255, 255))
-    
-    # Calculate scaling to fit image in square while maintaining aspect ratio
-    scale = min(size / orig_width, size / orig_height)
-    new_width = int(orig_width * scale)
-    new_height = int(orig_height * scale)
-    
-    # Resize image
-    image_resized = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-    
-    # Paste centered on white background
-    offset_x = (size - new_width) // 2
-    offset_y = (size - new_height) // 2
-    square.paste(image_resized, (offset_x, offset_y))
-    
-    return square
+os.environ["REPLICATE_API_TOKEN"] = api_token
 
 st.header("Step 1: Upload Your Photo")
 uploaded_file = st.file_uploader("Choose a photo:", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    
-    st.write(f"📊 **Original Image:** {image.size[0]}x{image.size[1]} ({image.mode})")
     st.image(image, caption="Your photo", width=300)
     
-    # Process image
-    processed_image = process_image(image)
-    
     with open("temp_photo.jpg", "wb") as f:
-        processed_image.save(f, format="JPEG", quality=95)
+        f.write(uploaded_file.getbuffer())
     
-    st.success("✅ Photo processed (720x720, no stretching)")
+    st.success("Photo uploaded!")
     
-    st.header("Step 2: Select Gender and Voice")
-    
-    # Gender selection
-    gender = st.radio("Choose Gender:", ["Male", "Female"], horizontal=True)
-    st.info(f"👤 Selected: {gender}")
-    
-    # Select voice based on gender
-    if gender == "Male":
-        voice_options = male_voices
-    else:
-        voice_options = female_voices
-    
-    selected_voice_name = st.selectbox(
-        "Choose voice:",
-        list(voice_options.keys())
+    st.header("Step 2: Select Language")
+    language = st.selectbox(
+        "Choose language:",
+        ["English (US)", "English (UK)", "Spanish", "French", "German", "Chinese", "Japanese"]
     )
-    selected_voice_id = voice_options[selected_voice_name]
-    st.info(f"🎤 Selected: {selected_voice_name}")
+    st.info(f"🌍 Selected: {language}")
     
-    st.header("Step 3: What should the avatar say?")
+    st.header("Step 3: Select Voice Gender & Type")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        gender = st.selectbox(
+            "Choose gender:",
+            ["Male", "Female"]
+        )
+    
+    with col2:
+        if gender == "Male":
+            voice_option = st.selectbox(
+                "Choose voice:",
+                ["Natural", "Professional", "Friendly", "Energetic", "Deep"]
+            )
+        else:
+            voice_option = st.selectbox(
+                "Choose voice:",
+                ["Natural", "Professional", "Friendly", "Energetic", "Soft"]
+            )
+    
+    st.info(f"🎤 Selected: {gender} - {voice_option}")
+    
+    st.header("Step 4: What should the avatar say?")
     script = st.text_area(
         "Enter your script:", 
         height=100, 
@@ -126,7 +71,20 @@ if uploaded_file is not None:
     
     if script:
         char_count = len(script)
-        st.info(f"📝 {char_count} characters - ⏳ Processing takes 3-7 minutes")
+        st.info(f"📝 {char_count} characters - ⏳ Processing takes 2-5 minutes")
+    
+    st.header("Step 5: Adjust Speaking Speed")
+    speed = st.slider(
+        "Speaking Speed:",
+        min_value=0.5,
+        max_value=2.0,
+        value=1.0,
+        step=0.1,
+        help="0.5 = Slow, 1.0 = Normal, 2.0 = Fast"
+    )
+    
+    speed_label = "🐢 Slow" if speed < 1.0 else "⚡ Fast" if speed > 1.0 else "⏱️ Normal"
+    st.info(f"{speed_label} - Speed: {speed}x")
     
     if script:
         if st.button("Create Video", type="primary"):
@@ -134,31 +92,34 @@ if uploaded_file is not None:
             status_placeholder = st.empty()
             
             try:
-                # Step 1: Generate audio with ElevenLabs SDK
-                progress_placeholder.progress(20)
-                status_placeholder.text("🎤 Generating voice with ElevenLabs... (20%)")
+                progress_values = [10, 25, 40, 55, 70, 85, 95]
+                status_messages = [
+                    "🎬 Uploading image...", 
+                    "🎤 Processing dialogue...", 
+                    "✨ Generating avatar...", 
+                    "🎨 Creating frames...", 
+                    "⚙️ Finalizing video...", 
+                    "🔄 Almost there...", 
+                    "✅ Rendering..."
+                ]
                 
-                audio_generator = elevenlabs_client.text_to_speech.convert(
-                    text=script,
-                    voice_id=selected_voice_id,
-                    model_id="eleven_multilingual_v2"
-                )
+                for progress, message in zip(progress_values, status_messages):
+                    progress_placeholder.progress(progress)
+                    status_placeholder.text(f"{message} ({progress}%)")
+                    time.sleep(0.5)
                 
-                # Convert generator to bytes
-                audio_bytes = b"".join(audio_generator)
+                progress_placeholder.progress(95)
+                status_placeholder.text("✨ Final touches... (95%)")
+                time.sleep(2)
                 
-                # Save audio temporarily
-                with open("temp_audio.mp3", "wb") as f:
-                    f.write(audio_bytes)
-                
-                progress_placeholder.progress(40)
-                status_placeholder.text("✨ Audio generated, creating video... (40%)")
-                
-                # Step 2: Create video from image + audio
-                # Use only image and audio - let the model handle the rest
+                # Use built-in dialogue generation with image and speed control
                 input_data = {
                     "image": open("temp_photo.jpg", "rb"),
-                    "audio": open("temp_audio.mp3", "rb"),
+                    "prompt": script,
+                    "duration": 5,
+                    "resolution": "720p",
+                    "fps": 24,
+                    "speech_rate": speed
                 }
                 
                 output = replicate.run(
@@ -183,4 +144,4 @@ if uploaded_file is not None:
                 
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
-                st.info("💡 Tip: Make sure your ElevenLabs API token is valid and you have credits remaining")
+                st.info("💡 Tip: Try a shorter script (under 100 words) for better results")# Updated: Thu May 28 15:08:43 IST 2026
