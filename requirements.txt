@@ -2,4 +2,4 @@ streamlit>=1.35.0
 replicate==0.20.0
 python-dotenv==1.0.0
 requests==2.31.0
-elevenlabs==0.2.27
+elevenlabs>=0.3.0

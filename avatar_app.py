@@ -29,8 +29,8 @@ if not elevenlabs_token:
 
 os.environ["REPLICATE_API_TOKEN"] = replicate_token
 
-# Initialize ElevenLabs client
-client = ElevenLabs(api_key=elevenlabs_token)
+# Initialize clients
+elevenlabs_client = ElevenLabs(api_key=elevenlabs_token)
 
 st.header("Step 1: Upload Your Photo")
 uploaded_file = st.file_uploader("Choose a photo:", type=["jpg", "jpeg", "png"])
@@ -52,7 +52,6 @@ if uploaded_file is not None:
     st.info(f"🌍 Selected: {language}")
     
     st.header("Step 3: Select Voice")
-    # ElevenLabs voice options
     voices_dict = {
         "Rachel": "21m00Tcm4TlvDq8ikWAM",
         "Clyde": "2EiwWnXFnvU5JabPnXlIQe",
@@ -66,10 +65,7 @@ if uploaded_file is not None:
         "Sam": "yoZ06aMxZJJ28mfd3foM",
     }
     
-    voice_name = st.selectbox(
-        "Choose voice:",
-        list(voices_dict.keys())
-    )
+    voice_name = st.selectbox("Choose voice:", list(voices_dict.keys()))
     st.info(f"🎤 Selected: {voice_name}")
     
     st.header("Step 4: What should the avatar say?")
@@ -89,20 +85,19 @@ if uploaded_file is not None:
             status_placeholder = st.empty()
             
             try:
-                # Step 1: Generate audio with ElevenLabs
+                # Step 1: Generate audio with ElevenLabs SDK
                 progress_placeholder.progress(20)
                 status_placeholder.text("🎤 Generating voice with ElevenLabs... (20%)")
                 
-                audio_data = client.text_to_speech.convert(
+                audio = elevenlabs_client.text_to_speech.convert(
                     text=script,
                     voice_id=voices_dict[voice_name],
-                    model_id="eleven_monolingual_v1",
-                    output_format="mp3_44100_128"
+                    model_id="eleven_multilingual_v2"
                 )
                 
                 # Save audio temporarily
                 with open("temp_audio.mp3", "wb") as f:
-                    f.write(audio_data)
+                    f.write(audio)
                 
                 progress_placeholder.progress(40)
                 status_placeholder.text("✨ Audio generated, creating video... (40%)")
