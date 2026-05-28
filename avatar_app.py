@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from PIL import Image
 import requests
 import time
-from elevenlabs.client import ElevenLabs
+from elevenlabs import ElevenLabs
 
 load_dotenv()
 
