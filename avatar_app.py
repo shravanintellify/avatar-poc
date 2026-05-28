@@ -49,35 +49,54 @@ female_voices = {
     "Female Voice 5": "NDTYOmYEjbDIVCKB35i3",
 }
 
+def process_image(image):
+    """Convert image to RGB and pad to square without stretching"""
+    # Convert RGBA to RGB if needed
+    if image.mode == "RGBA":
+        rgb_image = Image.new("RGB", image.size, (255, 255, 255))
+        rgb_image.paste(image, mask=image.split()[3])
+        image = rgb_image
+    elif image.mode != "RGB":
+        image = image.convert("RGB")
+    
+    # Get original dimensions
+    orig_width, orig_height = image.size
+    
+    # Create square canvas (720x720 for better quality)
+    size = 720
+    square = Image.new("RGB", (size, size), (255, 255, 255))
+    
+    # Calculate scaling to fit image in square while maintaining aspect ratio
+    scale = min(size / orig_width, size / orig_height)
+    new_width = int(orig_width * scale)
+    new_height = int(orig_height * scale)
+    
+    # Resize image
+    image_resized = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    
+    # Paste centered on white background
+    offset_x = (size - new_width) // 2
+    offset_y = (size - new_height) // 2
+    square.paste(image_resized, (offset_x, offset_y))
+    
+    return square
+
 st.header("Step 1: Upload Your Photo")
 uploaded_file = st.file_uploader("Choose a photo:", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
     
-    # DEBUG: Check image properties
-    st.write(f"📊 **Image Info:**")
-    st.write(f"  - Size: {image.size[0]} x {image.size[1]} pixels")
-    st.write(f"  - Format: {image.format}")
-    st.write(f"  - Mode: {image.mode}")
-    
+    st.write(f"📊 **Original Image:** {image.size[0]}x{image.size[1]} ({image.mode})")
     st.image(image, caption="Your photo", width=300)
     
-    # Convert RGBA to RGB and resize
-    if image.mode == "RGBA":
-        st.info("Converting transparent image to solid background...")
-        rgb_image = Image.new("RGB", image.size, (255, 255, 255))
-        rgb_image.paste(image, mask=image.split()[3] if len(image.split()) == 4 else None)
-        image = rgb_image
-    elif image.mode != "RGB":
-        image = image.convert("RGB")
+    # Process image
+    processed_image = process_image(image)
     
-    # Resize image to 512x512 for better compatibility
-    image_resized = image.resize((512, 512))
     with open("temp_photo.jpg", "wb") as f:
-        image_resized.save(f, format="JPEG", quality=95)
+        processed_image.save(f, format="JPEG", quality=95)
     
-    st.success("✅ Photo uploaded and processed!")
+    st.success("✅ Photo processed (720x720, no stretching)")
     
     st.header("Step 2: Select Gender and Voice")
     
@@ -135,11 +154,11 @@ if uploaded_file is not None:
                 progress_placeholder.progress(40)
                 status_placeholder.text("✨ Audio generated, creating video... (40%)")
                 
-                # Step 2: Create video from image + audio + prompt
+                # Step 2: Create video from image + audio
+                # Use only image and audio - let the model handle the rest
                 input_data = {
                     "image": open("temp_photo.jpg", "rb"),
                     "audio": open("temp_audio.mp3", "rb"),
-                    "prompt": script,
                 }
                 
                 output = replicate.run(
