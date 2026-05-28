@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from PIL import Image
 import requests
 import time
-from elevenlabs import client as elevenlabs_client
+from elevenlabs.client import ElevenLabs
 
 load_dotenv()
 
@@ -20,7 +20,7 @@ if not replicate_token:
     st.error("❌ Error: REPLICATE_API_TOKEN not found")
     st.stop()
 
-elevenlabs_token = os.getenv("ELEVENLABS_API_TOKEN")
+elevenlabs_token = os.getenv("ELEVENLABS_API_KEY")
 if not elevenlabs_token:
     elevenlabs_token = st.secrets.get("ELEVENLABS_API_TOKEN")
 if not elevenlabs_token:
@@ -28,7 +28,9 @@ if not elevenlabs_token:
     st.stop()
 
 os.environ["REPLICATE_API_TOKEN"] = replicate_token
-elevenlabs_client.set_api_key(elevenlabs_token)
+
+# Initialize ElevenLabs client
+client = ElevenLabs(api_key=elevenlabs_token)
 
 st.header("Step 1: Upload Your Photo")
 uploaded_file = st.file_uploader("Choose a photo:", type=["jpg", "jpeg", "png"])
@@ -91,10 +93,11 @@ if uploaded_file is not None:
                 progress_placeholder.progress(20)
                 status_placeholder.text("🎤 Generating voice with ElevenLabs... (20%)")
                 
-                audio_data = elevenlabs_client.text_to_speech(
+                audio_data = client.text_to_speech.convert(
                     text=script,
-                    voice=voices_dict[voice_name],
-                    model="eleven_monolingual_v1"
+                    voice_id=voices_dict[voice_name],
+                    model_id="eleven_monolingual_v1",
+                    output_format="mp3_44100_128"
                 )
                 
                 # Save audio temporarily
