@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from PIL import Image
 import requests
 import time
-from elevenlabs import ElevenLabs
+from elevenlabs.client import ElevenLabs
 
 load_dotenv()
 
@@ -20,7 +20,7 @@ if not replicate_token:
     st.error("❌ Error: REPLICATE_API_TOKEN not found")
     st.stop()
 
-elevenlabs_token = os.getenv("ELEVENLABS_API_KEY")
+elevenlabs_token = os.getenv("ELEVENLABS_API_TOKEN")
 if not elevenlabs_token:
     elevenlabs_token = st.secrets.get("ELEVENLABS_API_TOKEN")
 if not elevenlabs_token:
