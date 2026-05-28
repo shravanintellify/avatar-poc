@@ -1,4 +1,3 @@
-cat > ~/Documents/avatar-poc/avatar_app.py << 'PYTHON_EOF'
 import streamlit as st
 import replicate
 import os
@@ -141,4 +140,3 @@ if uploaded_file is not None:
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
                 st.info("💡 Tip: Make sure your ElevenLabs API token is valid and you have free credits remaining")
-PYTHON_EOF
