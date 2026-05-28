@@ -52,17 +52,15 @@ if uploaded_file is not None:
     st.info(f"🌍 Selected: {language}")
     
     st.header("Step 3: Select Voice")
+    # These are the default ElevenLabs voices
     voices_dict = {
-        "Rachel": "21m00Tcm4TlvDq8ikWAM",
-        "Clyde": "2EiwWnXFnvU5JabPnXlIQe",
-        "Domi": "AZnzlk1XvdvUBZ4xvXNO",
-        "Bella": "EXAVITQu4vLHcDG75Zi5",
-        "Antoni": "ErXwobaYiN4MqFLsquhQH",
-        "Elli": "MF3mGyEYCl7XYWbV4B8N",
-        "Josh": "NM3f8KdkDk33SB3OeVqA",
-        "Arnold": "VR6AewLHbXG4fMH3DapH",
-        "Adam": "pFZP5JQG7iQjVjxwDxl9",
-        "Sam": "yoZ06aMxZJJ28mfd3foM",
+        "George": "JBFqnCBsd6RMkjVDRZzb",
+        "Callum": "N2lVS1Bf4yfhs3UNxFjO",
+        "Alice": "Xb7hH8MSUJpSbvXZwix3",
+        "Liam": "TX3LPaxmHKbtyChAf97l",
+        "Matilda": "T9gMpSsS5vicPHZMVLua",
+        "Will": "bIHbv24MWmeRgasZH58o",
+        "Emily": "LcfcDJNUP1ajNAe3NEN5",
     }
     
     voice_name = st.selectbox("Choose voice:", list(voices_dict.keys()))
