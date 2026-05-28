@@ -103,10 +103,11 @@ if uploaded_file is not None:
                 progress_placeholder.progress(40)
                 status_placeholder.text("✨ Audio generated, creating video... (40%)")
                 
-                # Step 2: Create video from image + audio
+                # Step 2: Create video from image + audio + prompt
                 input_data = {
                     "image": open("temp_photo.jpg", "rb"),
                     "audio": open("temp_audio.mp3", "rb"),
+                    "prompt": script,
                     "resolution": "720p",
                     "fps": 24
                 }
@@ -133,4 +134,3 @@ if uploaded_file is not None:
                 
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
-                st.info("💡 Tip: Make sure your ElevenLabs API token is valid and you have credits remaining")
