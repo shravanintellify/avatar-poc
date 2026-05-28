@@ -1,4 +1,3 @@
-# Updated: Thu May 28 15:50:36 IST 2026
 import streamlit as st
 import replicate
 import os
@@ -6,7 +5,7 @@ from dotenv import load_dotenv
 from PIL import Image
 import requests
 import time
-from elevenlabs import ElevenLabs
+import elevenlabs
 
 load_dotenv()
 
@@ -31,7 +30,7 @@ if not elevenlabs_token:
 os.environ["REPLICATE_API_TOKEN"] = replicate_token
 
 # Initialize ElevenLabs client
-client = ElevenLabs(api_key=elevenlabs_token)
+client = elevenlabs.ElevenLabs(api_key=elevenlabs_token)
 
 st.header("Step 1: Upload Your Photo")
 uploaded_file = st.file_uploader("Choose a photo:", type=["jpg", "jpeg", "png"])
