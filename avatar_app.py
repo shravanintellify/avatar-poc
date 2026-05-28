@@ -6,7 +6,6 @@ from PIL import Image
 import requests
 import time
 from elevenlabs.client import ElevenLabs
-from pydub import AudioSegment
 
 load_dotenv()
 
@@ -94,7 +93,9 @@ if uploaded_file is not None:
     
     if script:
         char_count = len(script)
-        st.info(f"📝 {char_count} characters - ⏳ Processing takes 2-5 minutes")
+        # Estimate: ~150 words per minute = ~2.5 characters per second
+        estimated_duration = max(5, int(char_count / 2.5))
+        st.info(f"📝 {char_count} characters - ⏱️ Estimated: {estimated_duration}s video")
     
     if script:
         if st.button("Create Video", type="primary"):
@@ -117,19 +118,12 @@ if uploaded_file is not None:
                 with open("temp_audio.mp3", "wb") as f:
                     f.write(audio_data)
                 
-                # Get audio duration
-                try:
-                    audio = AudioSegment.from_mp3("temp_audio.mp3")
-                    duration_seconds = len(audio) / 1000.0
-                    # Add 1 second buffer for intro animation
-                    video_duration = int(duration_seconds) + 1
-                except:
-                    video_duration = 5  # fallback to 5 seconds
-                
-                st.info(f"⏱️ Audio duration: {duration_seconds:.1f}s → Video: {video_duration}s")
-                
                 progress_placeholder.progress(40)
                 status_placeholder.text("✨ Creating video... (40%)")
+                
+                # Calculate video duration based on character count
+                char_count = len(script)
+                video_duration = max(5, int(char_count / 2.5))
                 
                 # Step 2: Create video from image + audio
                 input_data = {
@@ -137,8 +131,6 @@ if uploaded_file is not None:
                     "audio": open("temp_audio.mp3", "rb"),
                     "prompt": script,
                     "duration": video_duration,
-                    "resolution": "720p",
-                    "fps": 24
                 }
                 
                 output = replicate.run(
