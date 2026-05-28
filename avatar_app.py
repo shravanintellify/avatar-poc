@@ -29,7 +29,7 @@ if not elevenlabs_token:
 
 os.environ["REPLICATE_API_TOKEN"] = replicate_token
 
-# Initialize clients
+# Initialize ElevenLabs client
 elevenlabs_client = ElevenLabs(api_key=elevenlabs_token)
 
 st.header("Step 1: Upload Your Photo")
@@ -89,15 +89,18 @@ if uploaded_file is not None:
                 progress_placeholder.progress(20)
                 status_placeholder.text("🎤 Generating voice with ElevenLabs... (20%)")
                 
-                audio = elevenlabs_client.text_to_speech.convert(
+                audio_generator = elevenlabs_client.text_to_speech.convert(
                     text=script,
                     voice_id=voices_dict[voice_name],
                     model_id="eleven_multilingual_v2"
                 )
                 
+                # Convert generator to bytes
+                audio_bytes = b"".join(audio_generator)
+                
                 # Save audio temporarily
                 with open("temp_audio.mp3", "wb") as f:
-                    f.write(audio)
+                    f.write(audio_bytes)
                 
                 progress_placeholder.progress(40)
                 status_placeholder.text("✨ Audio generated, creating video... (40%)")
