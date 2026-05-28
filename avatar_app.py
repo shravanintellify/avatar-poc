@@ -32,6 +32,19 @@ os.environ["REPLICATE_API_TOKEN"] = replicate_token
 # Initialize ElevenLabs client
 elevenlabs_client = ElevenLabs(api_key=elevenlabs_token)
 
+# Cache voices from ElevenLabs
+@st.cache_data
+def get_voices_from_elevenlabs():
+    try:
+        voices = elevenlabs_client.voices.get_all()
+        return voices
+    except Exception as e:
+        st.error(f"Error fetching voices: {str(e)}")
+        return []
+
+# Get all voices
+all_voices = get_voices_from_elevenlabs()
+
 st.header("Step 1: Upload Your Photo")
 uploaded_file = st.file_uploader("Choose a photo:", type=["jpg", "jpeg", "png"])
 
@@ -44,29 +57,36 @@ if uploaded_file is not None:
     
     st.success("Photo uploaded!")
     
-    st.header("Step 2: Select Language")
-    language = st.selectbox(
-        "Choose language:",
-        ["English (US)", "English (UK)", "Spanish", "French", "German", "Chinese", "Japanese"]
-    )
-    st.info(f"🌍 Selected: {language}")
+    st.header("Step 2: Select Gender and Voice")
     
-    st.header("Step 3: Select Voice")
-    # ElevenLabs default voices
-    voices_dict = {
-        "George": "JBFqnCBsd6RMkjVDRZzb",
-        "Callum": "N2lVS1Bf4yfhs3UNxFjO",
-        "Alice": "Xb7hH8MSUJpSbvXZwix3",
-        "Liam": "TX3LPaxmHKbtyChAf97l",
-        "Matilda": "T9gMpSsS5vicPHZMVLua",
-        "Will": "bIHbv24MWmeRgasZH58o",
-        "Emily": "LcfcDJNUP1ajNAe3NEN5",
-    }
+    # Gender selection
+    gender = st.radio("Choose Gender:", ["Male", "Female"], horizontal=True)
+    st.info(f"👤 Selected: {gender}")
     
-    voice_name = st.selectbox("Choose voice:", list(voices_dict.keys()))
-    st.info(f"🎤 Selected: {voice_name}")
+    # Filter voices by gender
+    filtered_voices = [v for v in all_voices if v.labels.get("gender") == gender.lower()]
     
-    st.header("Step 4: What should the avatar say?")
+    if not filtered_voices:
+        st.warning(f"No {gender} voices available. Showing all voices instead.")
+        filtered_voices = all_voices[:10]
+    else:
+        filtered_voices = filtered_voices[:10]
+    
+    # Create voice options
+    voice_options = {v.name: v.voice_id for v in filtered_voices}
+    
+    if voice_options:
+        selected_voice_name = st.selectbox(
+            "Choose voice:",
+            list(voice_options.keys())
+        )
+        selected_voice_id = voice_options[selected_voice_name]
+        st.info(f"🎤 Selected: {selected_voice_name}")
+    else:
+        st.error("No voices available")
+        st.stop()
+    
+    st.header("Step 3: What should the avatar say?")
     script = st.text_area(
         "Enter your script:", 
         height=100, 
@@ -89,7 +109,7 @@ if uploaded_file is not None:
                 
                 audio_generator = elevenlabs_client.text_to_speech.convert(
                     text=script,
-                    voice_id=voices_dict[voice_name],
+                    voice_id=selected_voice_id,
                     model_id="eleven_multilingual_v2"
                 )
                 
@@ -134,3 +154,4 @@ if uploaded_file is not None:
                 
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
+                st.info("💡 Tip: Make sure your ElevenLabs API token is valid and you have credits remaining")
